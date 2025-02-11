@@ -5,7 +5,7 @@ const { sql, poolPromise } = require("../Config/db");
 // CREATE a new registration
 router.post("/", async (req, res) => {
   try {
-    const { FirstName, MiddleName, LastName, MobileNumber, FullAddress, ProfilePic, ProfessionalId, ExpertiseLevelId } = req.body;
+    const { FirstName, MiddleName, LastName, MobileNumber, FullAddress, Profilepic, ProfessionId, ExpertiseLevelId } = req.body;
     
     const pool = await poolPromise;
     const result = await pool.request()
@@ -14,21 +14,22 @@ router.post("/", async (req, res) => {
       .input("LastName", sql.VarChar, LastName)
       .input("MobileNumber", sql.VarChar, MobileNumber)
       .input("FullAddress", sql.VarChar, FullAddress)
-      .input("ProfilePic", sql.VarChar, ProfilePic)
-      .input("ProfessionalId", sql.Int, ProfessionalId)
+      .input("Profilepic", sql.VarChar, Profilepic)
+      .input("ProfessionId", sql.Int, ProfessionId)
       .input("ExpertiseLevelId", sql.Int, ExpertiseLevelId)
       .query(`
-        INSERT INTO Registration (FirstName, MiddleName, LastName, MobileNumber, FullAddress, ProfilePic, ProfessionalId, ExpertiseLevelId)
-        VALUES (@FirstName, @MiddleName, @LastName, @MobileNumber, @FullAddress, @ProfilePic, @ProfessionalId, @ExpertiseLevelId)
+        INSERT INTO Registration (FirstName, MiddleName, LastName, MobileNumber, FullAddress, Profilepic, ProfessionId, ExpertiseLevelId)
+        OUTPUT INSERTED.Id
+        VALUES (@FirstName, @MiddleName, @LastName, @MobileNumber, @FullAddress, @Profilepic, @ProfessionId, @ExpertiseLevelId)
       `);
 
-    res.status(201).json({ message: "Registration created successfully" });
+    res.status(201).json({ message: "Registration created successfully", id: result.recordset[0].Id });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Error creating registration", details: error.message });
   }
 });
 
-// READ all registration
+// READ all registrations
 router.get("/", async (req, res) => {
   try {
     const pool = await poolPromise;
@@ -36,7 +37,7 @@ router.get("/", async (req, res) => {
 
     res.json(result.recordset);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Error fetching registrations", details: error.message });
   }
 });
 
@@ -56,7 +57,7 @@ router.get("/:id", async (req, res) => {
 
     res.json(result.recordset[0]);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Error fetching registration", details: error.message });
   }
 });
 
@@ -64,24 +65,24 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { FirstName, MiddleName, LastName, MobileNumber, FullAddress, ProfilePic, ProfessionalId, ExpertiseLevelId } = req.body;
+    const { FirstName, MiddleName, LastName, MobileNumber, FullAddress, Profilepic, ProfessionId, ExpertiseLevelId } = req.body;
 
     const pool = await poolPromise;
     const result = await pool.request()
       .input("Id", sql.Int, id)
-      .input("FirstName", sql.NVarChar, FirstName)
-      .input("MiddleName", sql.NVarChar, MiddleName)
-      .input("LastName", sql.NVarChar, LastName)
-      .input("MobileNumber", sql.NVarChar, MobileNumber)
-      .input("FullAddress", sql.NVarChar, FullAddress)
-      .input("ProfilePic", sql.NVarChar, ProfilePic)
-      .input("ProfessionalId", sql.Int, ProfessionalId)
+      .input("FirstName", sql.VarChar, FirstName)
+      .input("MiddleName", sql.VarChar, MiddleName)
+      .input("LastName", sql.VarChar, LastName)
+      .input("MobileNumber", sql.VarChar, MobileNumber)
+      .input("FullAddress", sql.VarChar, FullAddress)
+      .input("Profilepic", sql.VarChar, Profilepic) // Fixed case inconsistency
+      .input("ProfessionId", sql.Int, ProfessionId)
       .input("ExpertiseLevelId", sql.Int, ExpertiseLevelId)
       .query(`
         UPDATE Registration
         SET FirstName = @FirstName, MiddleName = @MiddleName, LastName = @LastName, 
-            MobileNumber = @MobileNumber, FullAddress = @FullAddress, ProfilePic = @ProfilePic, 
-            ProfessionalId = @ProfessionalId, ExpertiseLevelId = @ExpertiseLevelId
+            MobileNumber = @MobileNumber, FullAddress = @FullAddress, Profilepic = @Profilepic, 
+            ProfessionId = @ProfessionId, ExpertiseLevelId = @ExpertiseLevelId
         WHERE Id = @Id
       `);
 
@@ -91,7 +92,7 @@ router.put("/:id", async (req, res) => {
 
     res.json({ message: "Registration updated successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Error updating registration", details: error.message });
   }
 });
 
@@ -111,7 +112,7 @@ router.delete("/:id", async (req, res) => {
 
     res.json({ message: "Registration deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Error deleting registration", details: error.message });
   }
 });
 

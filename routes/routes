@@ -1,0 +1,5 @@
+const registrationRoutes = require("./Controllers/registrationController"); 
+
+
+// Routes
+app.use("/api/registration", registrationRoutes);
