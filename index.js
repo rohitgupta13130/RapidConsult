@@ -6,23 +6,21 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const colors = require("colors");
 const morgan = require("morgan");
-
-
-
 require("dotenv").config();
 
 const app = express();
 
-//middleware
-app.use(express.json());
+// Middleware
+app.use(express.json()); // No need for bodyParser.json()
 app.use(morgan("dev"));
 
-const PORT = process.env.PORT || 8000;
+const registrationRoutes = require("./Controllers/registrationController");
 
-app.use(bodyParser.json());
+// Routes
+app.use("/api/registration", registrationRoutes);
 
-
-
+// Port Configuration
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`.bgMagenta.white);
+  console.log(`🚀 Server running on port ${PORT}`.bgMagenta.white);
 });

@@ -1,22 +1,22 @@
 const express = require("express");
 const router = express.Router();
 const { sql, poolPromise } = require("../Config/db");
+const RegistrationDTO = require("../Dtos/registrationDto");
 
 // CREATE a new registration
 router.post("/", async (req, res) => {
   try {
-    const { FirstName, MiddleName, LastName, MobileNumber, FullAddress, Profilepic, ProfessionId, ExpertiseLevelId } = req.body;
-    
+    const dto = new RegistrationDTO(req.body);
     const pool = await poolPromise;
     const result = await pool.request()
-      .input("FirstName", sql.VarChar, FirstName)
-      .input("MiddleName", sql.VarChar, MiddleName)
-      .input("LastName", sql.VarChar, LastName)
-      .input("MobileNumber", sql.VarChar, MobileNumber)
-      .input("FullAddress", sql.VarChar, FullAddress)
-      .input("Profilepic", sql.VarChar, Profilepic)
-      .input("ProfessionId", sql.Int, ProfessionId)
-      .input("ExpertiseLevelId", sql.Int, ExpertiseLevelId)
+      .input("FirstName", sql.VarChar, dto.FirstName)
+      .input("MiddleName", sql.VarChar, dto.MiddleName)
+      .input("LastName", sql.VarChar, dto.LastName)
+      .input("MobileNumber", sql.VarChar, dto.MobileNumber)
+      .input("FullAddress", sql.VarChar, dto.FullAddress)
+      .input("Profilepic", sql.VarChar, dto.Profilepic)
+      .input("ProfessionId", sql.Int, dto.ProfessionId)
+      .input("ExpertiseLevelId", sql.Int, dto.ExpertiseLevelId)
       .query(`
         INSERT INTO Registration (FirstName, MiddleName, LastName, MobileNumber, FullAddress, Profilepic, ProfessionId, ExpertiseLevelId)
         OUTPUT INSERTED.Id
@@ -34,8 +34,8 @@ router.get("/", async (req, res) => {
   try {
     const pool = await poolPromise;
     const result = await pool.request().query("SELECT * FROM Registration");
-
-    res.json(result.recordset);
+    const registrations = result.recordset.map(record => new RegistrationDTO(record));
+    res.json(registrations);
   } catch (error) {
     res.status(500).json({ error: "Error fetching registrations", details: error.message });
   }
@@ -45,7 +45,6 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
     const pool = await poolPromise;
     const result = await pool.request()
       .input("Id", sql.Int, id)
@@ -55,7 +54,7 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Registration not found" });
     }
 
-    res.json(result.recordset[0]);
+    res.json(new RegistrationDTO(result.recordset[0]));
   } catch (error) {
     res.status(500).json({ error: "Error fetching registration", details: error.message });
   }
@@ -65,19 +64,18 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { FirstName, MiddleName, LastName, MobileNumber, FullAddress, Profilepic, ProfessionId, ExpertiseLevelId } = req.body;
-
+    const dto = new RegistrationDTO(req.body);
     const pool = await poolPromise;
     const result = await pool.request()
       .input("Id", sql.Int, id)
-      .input("FirstName", sql.VarChar, FirstName)
-      .input("MiddleName", sql.VarChar, MiddleName)
-      .input("LastName", sql.VarChar, LastName)
-      .input("MobileNumber", sql.VarChar, MobileNumber)
-      .input("FullAddress", sql.VarChar, FullAddress)
-      .input("Profilepic", sql.VarChar, Profilepic) // Fixed case inconsistency
-      .input("ProfessionId", sql.Int, ProfessionId)
-      .input("ExpertiseLevelId", sql.Int, ExpertiseLevelId)
+      .input("FirstName", sql.VarChar, dto.FirstName)
+      .input("MiddleName", sql.VarChar, dto.MiddleName)
+      .input("LastName", sql.VarChar, dto.LastName)
+      .input("MobileNumber", sql.VarChar, dto.MobileNumber)
+      .input("FullAddress", sql.VarChar, dto.FullAddress)
+      .input("Profilepic", sql.VarChar, dto.Profilepic)
+      .input("ProfessionId", sql.Int, dto.ProfessionId)
+      .input("ExpertiseLevelId", sql.Int, dto.ExpertiseLevelId)
       .query(`
         UPDATE Registration
         SET FirstName = @FirstName, MiddleName = @MiddleName, LastName = @LastName, 
@@ -100,7 +98,6 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
     const pool = await poolPromise;
     const result = await pool.request()
       .input("Id", sql.Int, id)
