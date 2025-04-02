@@ -1,0 +1,9 @@
+/* You can add global styles to this file, and also import other style files */
+.content {
+    padding-bottom: 60px; /* Adjust to avoid overlap with fixed footer */
+  }
+  
+  body{
+    margin:0px;
+    padding:0px;
+  }
